@@ -11,6 +11,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Repository governance scaffolding: `GOVERNANCE.md`, `CODEOWNERS`, `LICENSE`,
   CI pipeline, commit-message validation, pre-commit hooks, PR template, and
   `docs/adr/` (Architecture Decision Records).
+- Test suite covering all three format libraries: strip round-trips,
+  blank-fields (no placeholder leakage), date stamping, image fingerprint
+  reset, C2PA-absent path, and the source-file-untouched invariant.
 
 ### Changed
 - Renamed metadata libraries to domain-specific names
