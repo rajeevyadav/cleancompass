@@ -1,3 +1,17 @@
+// Strip + rewrite raster-image metadata (JPEG/PNG/WebP/TIFF).
+//
+// Three concerns live here:
+//  1. exiftool performs the actual strip (`-all=`), clearing EXIF/IPTC/XMP, PNG
+//     text chunks (where SD/ComfyUI/Midjourney embed prompts), and any C2PA box
+//     exiftool understands.
+//  2. c2pa-node independently verifies whether a C2PA content-credentials
+//     manifest was present before and is gone after — a spec-correct check that
+//     doesn't rely on exiftool's tag names.
+//  3. sharp optionally re-encodes the image to change its perceptual hash
+//     (a privacy feature, distinct from metadata stripping — see resetFingerprint).
+//
+// A single ExifTool child process is lazily started and reused; callers must
+// invoke closeExiftool() at shutdown to let the process exit cleanly.
 const { ExifTool } = require('exiftool-vendored');
 const { createC2pa } = require('c2pa-node');
 const sharp = require('sharp');
@@ -61,6 +75,15 @@ function firstTagText(...candidates) {
   return '';
 }
 
+/**
+ * Read the identifying metadata from an image without modifying it, including a
+ * C2PA manifest presence check.
+ *
+ * @param {string} filePath  Path to an image file.
+ * @returns {Promise<object>}  Normalized fields (author, copyright,
+ *   description, software, parameters, comment, gps) plus `hasC2PA`. List-type
+ *   tags are flattened to a single display string.
+ */
 async function readMetadata(filePath) {
   const tool = getExiftool();
   const tags = await tool.read(filePath);
@@ -80,8 +103,18 @@ async function readMetadata(filePath) {
 }
 
 /**
- * @param {object} fields { author, company(copyright), comments(description),
- *   keywords, resetFingerprint }
+ * Strip all metadata from an image and write back only the supplied fields,
+ * saving to a new file. The input file is never modified. Optionally resets the
+ * image's perceptual fingerprint. Verifies C2PA removal before returning.
+ *
+ * @param {string} inPath   Source image (read-only).
+ * @param {string} outPath  Destination for the cleaned copy.
+ * @param {object} fields   User-supplied replacements: author, company (mapped
+ *   to Copyright), comments (mapped to Description), keywords, and the
+ *   resetFingerprint flag. Omitted fields are left absent.
+ * @returns {Promise<{c2pa: {detectedBefore: boolean, detectedAfter: boolean,
+ *   confirmedRemoved: (boolean|null)}}>}  C2PA verification result;
+ *   `confirmedRemoved` is null when no manifest was present to begin with.
  */
 async function scrubAndWrite(inPath, outPath, fields = {}) {
   await fs.copyFile(inPath, outPath);
@@ -156,6 +189,12 @@ async function resetFingerprint(filePath) {
   await fs.writeFile(filePath, reencoded);
 }
 
+/**
+ * Shut down the shared ExifTool child process. Call once on app exit; safe to
+ * call when no process was started.
+ *
+ * @returns {Promise<void>}
+ */
 async function closeExiftool() {
   if (exiftool) {
     await exiftool.end();

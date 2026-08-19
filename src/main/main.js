@@ -1,3 +1,8 @@
+// Electron main process: owns the application window, the persisted user
+// profile (remembered author/company defaults), and the IPC handlers the
+// renderer calls to inspect and scrub files. Each handler delegates the actual
+// metadata work to the format-specific library and returns a plain
+// { ok, ... } result the renderer can render directly.
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
