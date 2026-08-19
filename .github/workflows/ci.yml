@@ -117,8 +117,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Spellcheck docs
-        uses: streetsidesoftware/cspell-action@v6
+      - uses: actions/setup-node@v4
         with:
-          files: '**/*.md'
-          incremental_files_only: false
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      # Run the same cspell + cspell.json the project uses locally, so CI and
+      # local results never drift (the marketplace action bundles a different
+      # dictionary set).
+      - name: Spellcheck docs
+        run: npm run spell
