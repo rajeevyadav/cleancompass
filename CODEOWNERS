@@ -1,0 +1,7 @@
+# Authorized human maintainers (GOVERNANCE.md §1.1).
+# Only usernames listed here may approve and merge. This file is enforced by
+# branch protection: "Require review from Code Owners".
+#
+# Add authorized humans only. No bots, no service accounts, no AI agents.
+
+* @rajeevyadav

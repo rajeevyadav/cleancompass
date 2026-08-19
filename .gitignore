@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Electron-builder output
+dist/
+out/
+release/
+
+# Secrets — never commit (GOVERNANCE.md §10)
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.keystore
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Coverage / test output
+coverage/
+.nyc_output/
