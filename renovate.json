@@ -1,0 +1,19 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Security-only policy per GOVERNANCE.md section 10: Renovate raises pull requests for vulnerability fixes only, never routine version bumps. Every such PR still requires full senior review and passing CI before merge.",
+  "extends": [":disableDependencyDashboard"],
+  "enabledManagers": ["npm"],
+  "packageRules": [
+    {
+      "description": "Disable all routine (non-security) update PRs.",
+      "matchPackagePatterns": ["*"],
+      "enabled": false
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "description": "Security fixes are the only permitted automated updates.",
+    "enabled": true,
+    "labels": ["security"]
+  },
+  "osvVulnerabilityAlerts": true
+}
