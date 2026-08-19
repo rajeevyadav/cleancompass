@@ -1,0 +1,38 @@
+# Release pipeline — builds and publishes installers when a version tag is
+# pushed (GOVERNANCE.md §3, §11: every release produces a tag and its
+# artifacts). The signed tag is the controlled trigger; CI does the building.
+# ci.yml has already gated the commit this tag points at.
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write # required to create the GitHub Release and upload assets
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      # electron-builder reads the repository field from package.json and
+      # publishes to the GitHub Release matching the tag. macOS builds stay
+      # unsigned (no notarization certificate configured); disable identity
+      # auto-discovery so the build does not fail looking for one.
+      - name: Build and publish installers
+        run: npm run dist -- --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
