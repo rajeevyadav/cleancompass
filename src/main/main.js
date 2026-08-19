@@ -70,8 +70,8 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
-  // Keep the version in the title bar; otherwise the page's <title> would
-  // overwrite it (D-002 #6 — make the running version visible).
+  // Keep the version shown in the window title; otherwise the page's <title>
+  // would overwrite it (D-002 #6 — make the running version visible).
   mainWindow.on('page-title-updated', (event) => {
     event.preventDefault();
     mainWindow.setTitle(`Compass Clean v${app.getVersion()}`);

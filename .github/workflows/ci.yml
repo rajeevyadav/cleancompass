@@ -106,8 +106,12 @@ jobs:
             exit 1
           fi
       - name: Flag generic identifiers
+        # Matches the §7 forbidden names only when used as code identifiers, not
+        # as English words in comments/strings (e.g. "title bar"). ESLint's
+        # id-denylist is the authoritative enforcement; this is a lightweight
+        # backstop. processData/handleRequest are never prose, so match anywhere.
         run: |
-          if grep -rnwE '(foo|bar|processData|handleRequest)' src/ 2>/dev/null; then
+          if grep -rnE '\b(processData|handleRequest)\b|(\b(foo|bar)\b[0-9]*\s*[=(:]|[=(.]\s*\b(foo|bar)\b)' src/ 2>/dev/null; then
             echo "::error::Forbidden generic identifier detected (GOVERNANCE.md §7)"
             exit 1
           fi
