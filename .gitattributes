@@ -1,0 +1,15 @@
+# Normalize line endings to LF in the repository across all platforms
+# (GOVERNANCE.md §13, reproducible environments). Working copies on Windows
+# may still check out CRLF locally; the stored blobs stay LF.
+* text=auto eol=lf
+
+# Binary assets — never normalize.
+*.png binary
+*.ico binary
+*.icns binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.tif binary
+*.tiff binary
+*.pdf binary

@@ -21,6 +21,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   transitive `tar` 7.5.22 and `sharp` 0.35.3. Production dependency tree is now
   clean of high/critical CVEs.
 
+- Adopted the MIT license for public release (previously proprietary).
+- Added `.gitattributes` to normalize line endings to LF across platforms.
+
 ### Fixed
 - `imageMetadata.readMetadata` now flattens list-type exiftool tags
   (`exiftool-vendored` 37 returns `Artist`/`Creator` as arrays) to a single
