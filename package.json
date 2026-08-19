@@ -1,0 +1,100 @@
+{
+  "name": "compass-clean",
+  "productName": "Compass Clean",
+  "version": "0.1.0",
+  "description": "Strip and rewrite document metadata (DOCX/PPTX/XLSX/PDF/images) before sharing.",
+  "main": "src/main/main.js",
+  "engines": {
+    "node": ">=20 <21"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rajeevyadav/cleancompass.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "lint": "eslint \"src/**/*.js\"",
+    "lint:fix": "eslint --fix \"src/**/*.js\"",
+    "format": "prettier --write \"src/**/*.{js,html}\"",
+    "format:check": "prettier --check \"src/**/*.{js,html}\"",
+    "spell": "cspell \"**/*.md\"",
+    "test": "node --test",
+    "prepare": "husky"
+  },
+  "author": "Rajeev Yadav",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "adm-zip": "0.6.0",
+    "c2pa-node": "0.5.26",
+    "electron-store": "8.2.0",
+    "exiftool-vendored": "37.2.0",
+    "fast-xml-parser": "5.11.0",
+    "pdf-lib": "1.17.1",
+    "sharp": "0.35.3"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "21.2.2",
+    "@commitlint/config-conventional": "21.2.2",
+    "@eslint/js": "10.0.1",
+    "cspell": "10.0.1",
+    "electron": "31.7.7",
+    "electron-builder": "24.13.3",
+    "eslint": "10.8.1",
+    "globals": "17.11.0",
+    "husky": "9.1.7",
+    "lint-staged": "17.3.0",
+    "prettier": "3.9.6"
+  },
+  "lint-staged": {
+    "src/**/*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "src/**/*.html": [
+      "prettier --write"
+    ]
+  },
+  "overrides": {
+    "tar": "7.5.22",
+    "sharp": "0.35.3"
+  },
+  "build": {
+    "appId": "com.teckfile.compassclean",
+    "icon": "build/icon.png",
+    "files": [
+      "src/**/*",
+      "!node_modules/exiftool-vendored/bin/**/*.exe"
+    ],
+    "asarUnpack": [
+      "node_modules/c2pa-node/**/*",
+      "node_modules/sharp/**/*",
+      "node_modules/@img/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/exiftool-vendored.exe/bin",
+        "to": "exiftool-win",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "node_modules/exiftool-vendored.pl/bin",
+        "to": "exiftool-pl",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}
