@@ -1,57 +1,32 @@
 <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1c1f24"/>
-      <stop offset="100%" stop-color="#14161a"/>
-    </linearGradient>
-    <linearGradient id="needleN" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#6ee7a0"/>
-      <stop offset="100%" stop-color="#4f7cff"/>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4f7cff" />
+      <stop offset="100%" stop-color="#3fd68c" />
     </linearGradient>
   </defs>
 
-  <!-- background -->
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- Vibrant brand-gradient tile so the icon stays visible on both dark and
+       light taskbars/menus (a near-black tile disappears on dark backgrounds). -->
+  <rect width="512" height="512" rx="112" fill="url(#tile)" />
 
-  <!-- outer compass ring -->
-  <circle cx="256" cy="256" r="176" fill="none" stroke="#3a3f47" stroke-width="10"/>
-  <circle cx="256" cy="256" r="150" fill="none" stroke="#262a31" stroke-width="2"/>
+  <!-- compass rings, white for contrast on the colored tile -->
+  <circle cx="256" cy="256" r="176" fill="none" stroke="#ffffff" stroke-opacity="0.9" stroke-width="12" />
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="3" />
 
-  <!-- faint ghost tick marks: scattered / "confused" state, mostly erased -->
-  <g stroke="#2e333b" stroke-width="4" stroke-linecap="round" opacity="0.55">
-    <line x1="256" y1="80" x2="256" y2="104"/>
-    <line x1="256" y1="408" x2="256" y2="432"/>
-    <line x1="80" y1="256" x2="104" y2="256"/>
-    <line x1="408" y1="256" x2="432" y2="256"/>
-  </g>
-  <!-- a few faint stray ticks slightly off-axis, echo of "scattered" traces being cleaned -->
-  <g stroke="#2e333b" stroke-width="3" stroke-linecap="round" opacity="0.3">
-    <line x1="146" y1="112" x2="158" y2="130"/>
-    <line x1="366" y1="112" x2="354" y2="130"/>
-    <line x1="146" y1="400" x2="158" y2="382"/>
-    <line x1="366" y1="400" x2="354" y2="382"/>
+  <!-- cardinal ticks -->
+  <g stroke="#ffffff" stroke-opacity="0.9" stroke-width="8" stroke-linecap="round">
+    <line x1="256" y1="92" x2="256" y2="128" />
+    <line x1="256" y1="384" x2="256" y2="420" />
+    <line x1="92" y1="256" x2="128" y2="256" />
+    <line x1="384" y1="256" x2="420" y2="256" />
   </g>
 
-  <!-- main N/S/E/W ticks, crisp -->
-  <g stroke="#565d68" stroke-width="6" stroke-linecap="round">
-    <line x1="256" y1="96" x2="256" y2="126"/>
-    <line x1="256" y1="386" x2="256" y2="416"/>
-    <line x1="96" y1="256" x2="126" y2="256"/>
-    <line x1="386" y1="256" x2="416" y2="256"/>
-  </g>
-
-  <!-- compass needle: resolved, pointing true north -->
-  <g transform="rotate(0 256 256)">
-    <!-- north half: bright, resolved direction -->
-    <polygon points="256,132 276,256 256,244 236,256" fill="url(#needleN)"/>
-    <!-- south half: muted tail -->
-    <polygon points="256,380 236,256 256,268 276,256" fill="#3a3f47"/>
-  </g>
+  <!-- compass needle pointing true north -->
+  <polygon points="256,120 282,256 256,240 230,256" fill="#ffffff" />
+  <polygon points="256,392 230,256 256,272 282,256" fill="#ffffff" fill-opacity="0.4" />
 
   <!-- center pin -->
-  <circle cx="256" cy="256" r="14" fill="#e8e8ea"/>
-  <circle cx="256" cy="256" r="6" fill="#14161a"/>
-
-  <!-- N marker, small, at top -->
-  <text x="256" y="70" text-anchor="middle" font-family="-apple-system, Arial, sans-serif" font-size="28" font-weight="700" fill="#6ee7a0">N</text>
+  <circle cx="256" cy="256" r="16" fill="#ffffff" />
+  <circle cx="256" cy="256" r="7" fill="#2f6fef" />
 </svg>

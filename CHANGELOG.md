@@ -7,6 +7,43 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-19
+
+First-build review corrections (Directive D-002) plus a launch-crash fix.
+
+**Risk / impact summary (§11):** Addresses a critical defect — the packaged
+1.0.0 app could crash on launch (Windows Just-In-Time debugger) when a native
+dependency failed to load at require time. Native modules (`exiftool-vendored`,
+`c2pa-node`, `sharp`) now load lazily inside try/catch, and a global
+main-process `uncaughtException` handler shows a readable dialog instead of a
+hard crash. Remaining residual risks are unchanged from 1.0.0 (PDF C2PA gap;
+build-tooling CVE waiver). No data-loss risk: originals are still never
+modified, covered by tests.
+
+### Added
+- Before/After metadata comparison per file: expandable panel showing every
+  field from the format library, with blank fields shown as "— none —" so a
+  cleared field is visibly confirmed (D-002 #2).
+- Dual-theme (Light/Dark) semantic color-token system with a header toggle,
+  following the OS preference by default and persisting the user's choice.
+- Populated Help menu — About (version + description), a usage note, and a
+  README link — and the running version shown in the window title (D-002 #6).
+
+### Changed
+- Cleaned files now save next to their source by default; choosing an output
+  folder is an optional override and no longer required to run (D-002 #3).
+- Raised UI contrast to WCAG AA and removed the redundant window scrollbar so
+  only panels scroll (D-002 #1, #4).
+- Windows installer is now an assisted NSIS installer with a proper
+  uninstaller and Add/Remove Programs entry.
+
+### Fixed
+- Hardened main-process startup against native-module load failures (the 1.0.0
+  launch crash).
+- Replaced example placeholder text that used a real name/company with generic
+  examples; confirmed the persisted-profile pre-fill was a local testing
+  artifact, not a code default (D-002 #5).
+
 ## [1.0.0] - 2026-08-19
 
 First production-ready release, promoted from 0.1.0 under GOVERNANCE.md §3.

@@ -4,10 +4,12 @@ Electron desktop app: strip embedded metadata from DOCX/PPTX/XLSX/PDF/images, th
 write back only the fields the user explicitly fills in.
 
 [![CI](https://github.com/rajeevyadav/cleancompass/actions/workflows/ci.yml/badge.svg)](https://github.com/rajeevyadav/cleancompass/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![Node](https://img.shields.io/badge/node-20.x-339933)
+
+📥 **[Download &amp; project site](https://rajeevyadav.github.io/cleancompass/)** — Windows installer, macOS, and Linux builds.
 
 ## What this project is / is not
 

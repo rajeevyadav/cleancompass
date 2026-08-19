@@ -1,7 +1,7 @@
 {
   "name": "compass-clean",
   "productName": "Compass Clean",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Strip and rewrite document metadata (DOCX/PPTX/XLSX/PDF/images) before sharing.",
   "main": "src/main/main.js",
   "engines": {
@@ -64,6 +64,8 @@
     "icon": "build/icon.png",
     "files": [
       "src/**/*",
+      "build/icon.png",
+      "build/icon-32.png",
       "!node_modules/exiftool-vendored/bin/**/*.exe"
     ],
     "asarUnpack": [
@@ -88,7 +90,18 @@
       }
     ],
     "win": {
-      "target": "nsis"
+      "target": [
+        "nsis",
+        "zip"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": false
     },
     "mac": {
       "target": "dmg"
