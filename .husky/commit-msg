@@ -1,0 +1,8 @@
+# Commit-message enforcement — GOVERNANCE.md §4 and §1.1.
+npx --no-install commitlint --edit "$1"
+
+# Reject any AI co-author trailer (§1.1). Immediate failure, no exceptions.
+if grep -iqE 'co-authored-by:.*(copilot|claude|grok|cursor|chatgpt|gemini|devin|gpt|llm|[^a-z]ai[^a-z])' "$1"; then
+  echo "AI co-author trailer forbidden (GOVERNANCE.md 1.1)"
+  exit 1
+fi

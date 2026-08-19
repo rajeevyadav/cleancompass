@@ -1,0 +1,124 @@
+# CI pipeline — GOVERNANCE.md §1.3. Runs on every PR and every push to main.
+# Merge is blocked unless every required job passes. Do not add
+# `continue-on-error` or skip steps: CI is never optional (§1.3).
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint & format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - name: ESLint
+        run: npx --no-install eslint "src/**/*.js"
+      - name: Prettier check
+        run: npx --no-install prettier --check "src/**/*.{js,html}"
+
+  test:
+    name: Unit & integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - name: Run tests
+        run: npm test
+
+  commitlint:
+    name: Commit message validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - name: Validate commit messages
+        run: npx --no-install commitlint --from origin/main --to HEAD --verbose
+
+  secret-scan:
+    name: Secret scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dependency-audit:
+    name: Dependency vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      # Blocking gate: any high/critical CVE in a dependency that SHIPS in the
+      # app (production deps) fails the build. Production is currently clean at
+      # this level; keep it that way. See GOVERNANCE.md §10.
+      - name: Fail on high/critical CVEs in production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      # Non-blocking triage: the electron-builder/dev-electron build chain still
+      # carries high CVEs (build tooling, not shipped). Tracked by the waiver in
+      # docs/waivers/ pending the electron-builder major upgrade. Tighten this to
+      # blocking once that lands.
+      - name: Report build-tooling CVEs (non-blocking, triage)
+        run: npm audit --audit-level=high || true
+
+  ai-fingerprint:
+    name: AI pattern heuristic
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject AI co-author trailers
+        run: |
+          if git log origin/main..HEAD --format='%B' 2>/dev/null | \
+             grep -iE 'co-authored-by:.*(copilot|claude|grok|cursor|chatgpt|gemini|devin|gpt|llm|ai)'; then
+            echo "::error::AI co-author trailer detected (GOVERNANCE.md §1.1)"
+            exit 1
+          fi
+      - name: Flag generic identifiers
+        run: |
+          if grep -rnwE '(foo|bar|processData|handleRequest)' src/ 2>/dev/null; then
+            echo "::error::Forbidden generic identifier detected (GOVERNANCE.md §7)"
+            exit 1
+          fi
+
+  spelling:
+    name: Spelling & docs quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Spellcheck docs
+        uses: streetsidesoftware/cspell-action@v6
+        with:
+          files: '**/*.md'
+          incremental_files_only: false
