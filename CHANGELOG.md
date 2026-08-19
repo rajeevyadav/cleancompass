@@ -7,6 +7,19 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-08-19
+
+First production-ready release, promoted from 0.1.0 under GOVERNANCE.md §3.
+
+**Risk / impact summary (§11):** No runtime behavior changes from 0.1.0 —
+this release is a maturity declaration plus the governance, tooling, test,
+and dependency work below. Residual risks carried into 1.0.0: PDF-embedded
+C2PA manifests are not yet detected (`pdfMetadata.js`, tracked in README);
+`electron-builder` packaging is configured but not yet verified on a packaged
+build across all platforms; and build-only tooling CVEs remain under a
+time-boxed waiver (`docs/waivers/`, expires 2026-11-17). No data-loss risk:
+the source file is never modified and this is covered by tests.
+
 ### Added
 - Repository governance scaffolding: `GOVERNANCE.md`, `CODEOWNERS`, `LICENSE`,
   CI pipeline, commit-message validation, pre-commit hooks, PR template, and
