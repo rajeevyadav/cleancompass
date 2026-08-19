@@ -23,7 +23,7 @@
     "prepare": "husky"
   },
   "author": "Rajeev Yadav",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "dependencies": {
     "adm-zip": "0.6.0",
     "c2pa-node": "0.5.26",

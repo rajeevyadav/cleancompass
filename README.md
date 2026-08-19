@@ -5,7 +5,7 @@ write back only the fields the user explicitly fills in.
 
 [![CI](https://github.com/rajeevyadav/cleancompass/actions/workflows/ci.yml/badge.svg)](https://github.com/rajeevyadav/cleancompass/actions/workflows/ci.yml)
 ![Version](https://img.shields.io/badge/version-0.1.0-blue)
-![License](https://img.shields.io/badge/license-Proprietary-red)
+![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 ![Node](https://img.shields.io/badge/node-20.x-339933)
 
@@ -21,6 +21,8 @@ invisible pixel-level watermarks (e.g. Google SynthID) or statistical
 text-detector watermarks — no reliable public removal exists for those and they
 are out of scope by design. It is not a cloud service; nothing leaves your
 machine.
+
+Open source under the MIT license.
 
 ## What it strips
 
@@ -59,8 +61,8 @@ the same `c2pa-node` detect/verify pass images get. Flag if you hit one.
 
 ## License
 
-Proprietary — all rights reserved. See [LICENSE](LICENSE). Not open source; no
-use, copying, or distribution without written consent of the copyright holder.
+Released under the [MIT License](LICENSE) — free to use, modify, and
+distribute, with attribution and no warranty. Copyright (c) 2026 Rajeev Yadav.
 
 ## Setup
 
