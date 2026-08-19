@@ -1,0 +1,250 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Compass Clean</title>
+    <link rel="icon" href="../../build/icon-32.png" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system,
+          Segoe UI,
+          Arial,
+          sans-serif;
+        margin: 0;
+        background: #14161a;
+        color: #e8e8ea;
+      }
+      header {
+        padding: 18px 24px;
+        border-bottom: 1px solid #262a31;
+      }
+      header h1 {
+        font-size: 17px;
+        margin: 0;
+        font-weight: 600;
+      }
+      header p {
+        margin: 4px 0 0;
+        font-size: 12.5px;
+        color: #9297a1;
+      }
+      main {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 0;
+        height: calc(100vh - 64px);
+      }
+      .panel {
+        padding: 20px 24px;
+        overflow-y: auto;
+      }
+      .panel.left {
+        border-right: 1px solid #262a31;
+      }
+      .dropzone {
+        border: 1.5px dashed #3a3f47;
+        border-radius: 10px;
+        padding: 28px;
+        text-align: center;
+        color: #9297a1;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .dropzone:hover {
+        border-color: #565d68;
+      }
+      .file-list {
+        margin-top: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .file-row {
+        background: #1c1f24;
+        border: 1px solid #262a31;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 12.5px;
+      }
+      .file-row .name {
+        font-weight: 600;
+      }
+      .file-row .meta {
+        color: #7d828c;
+        margin-top: 4px;
+        font-size: 11.5px;
+        word-break: break-all;
+      }
+      .file-row .status {
+        margin-top: 6px;
+        font-size: 11.5px;
+      }
+      .status.ok {
+        color: #6ee7a0;
+      }
+      .status.err {
+        color: #f28b82;
+      }
+      label {
+        display: block;
+        font-size: 11.5px;
+        color: #9297a1;
+        margin: 12px 0 4px;
+      }
+      input[type='text'] {
+        width: 100%;
+        padding: 8px 10px;
+        background: #1c1f24;
+        border: 1px solid #2e333b;
+        border-radius: 6px;
+        color: #e8e8ea;
+        font-size: 13px;
+      }
+      .row2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .checks {
+        display: flex;
+        gap: 16px;
+        margin-top: 12px;
+        font-size: 12px;
+        color: #c2c5cb;
+      }
+      .checks label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        color: #c2c5cb;
+      }
+      button.primary {
+        margin-top: 18px;
+        width: 100%;
+        padding: 11px;
+        border: none;
+        border-radius: 7px;
+        background: #4f7cff;
+        color: white;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button.primary:disabled {
+        background: #333842;
+        cursor: not-allowed;
+      }
+      button.secondary {
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #2e333b;
+        background: transparent;
+        color: #c2c5cb;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .out-dir {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-top: 6px;
+      }
+      .out-dir span {
+        font-size: 11.5px;
+        color: #7d828c;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .section-title {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #7d828c;
+        margin: 20px 0 8px;
+      }
+      .hint {
+        font-size: 11px;
+        color: #6b7078;
+        margin-top: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Compass Clean</h1>
+      <p>Strip embedded metadata from documents/images, then write back only what you specify.</p>
+    </header>
+    <main>
+      <div class="panel left">
+        <div class="dropzone" id="dropzone">
+          Drop files here or click to choose<br /><span style="font-size: 11px"
+            >docx · pptx · xlsx · pdf · png · jpg · webp · tiff</span
+          >
+        </div>
+        <div class="file-list" id="fileList"></div>
+      </div>
+      <div class="panel right">
+        <div class="section-title">Author profile (remembered)</div>
+        <label>Author name</label>
+        <input type="text" id="p-author" placeholder="e.g. Rajeev Yadav" />
+        <label>Company / Organization</label>
+        <input type="text" id="p-company" placeholder="e.g. TeckFile Inc." />
+        <button class="secondary" id="saveProfile" style="margin-top: 10px">
+          Save as default profile
+        </button>
+
+        <div class="section-title">Per-batch fields (applied to all selected files)</div>
+        <div class="row2">
+          <div>
+            <label>Title</label>
+            <input type="text" id="f-title" />
+          </div>
+          <div>
+            <label>Subject / Keywords</label>
+            <input type="text" id="f-keywords" placeholder="comma,separated" />
+          </div>
+        </div>
+        <label>Comments / Description</label>
+        <input type="text" id="f-comments" />
+        <label>Last Modified By (docx/pptx/xlsx only, defaults to Author)</label>
+        <input type="text" id="f-lastmod" />
+
+        <div class="checks">
+          <label><input type="checkbox" id="f-setdates" /> Set created/modified dates to now</label>
+          <label
+            ><input type="checkbox" id="f-cleardates" checked /> Leave dates blank/absent</label
+          >
+        </div>
+
+        <div class="section-title">Images only</div>
+        <label style="display: flex; align-items: center; gap: 8px; color: #c2c5cb">
+          <input type="checkbox" id="f-resetfp" /> Reset image fingerprint (re-encode)
+        </label>
+        <div class="hint">
+          Changes the file's hash so reverse-image-search/duplicate-match services can't link a
+          shared copy back to the original. Also verifies via C2PA read-back that any
+          content-credentials manifest was actually removed. Does not affect invisible pixel
+          watermarks (e.g. SynthID) — that's a separate, unrelated thing this app doesn't touch.
+        </div>
+
+        <div class="section-title">Output folder</div>
+        <div class="out-dir">
+          <button class="secondary" id="pickDir">Choose folder…</button>
+          <span id="dirLabel">Not set</span>
+        </div>
+        <div class="hint">
+          Output files are written as <code>name.cleaned.ext</code> — originals are never modified.
+        </div>
+
+        <button class="primary" id="runBtn" disabled>Scrub &amp; Save</button>
+      </div>
+    </main>
+    <script src="renderer.js"></script>
+  </body>
+</html>
