@@ -10,6 +10,22 @@ const dirLabel = document.getElementById('dirLabel');
 let selectedFiles = []; // [{ path, name, kind, metadata, status, outPath, error }]
 let outputDir = null;
 
+// Light/dark theme toggle. The initial theme is set before paint by the inline
+// script in index.html; here we sync the button icon and persist changes.
+const themeToggle = document.getElementById('themeToggle');
+function activeTheme() {
+  return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+}
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+  themeToggle.textContent = theme === 'dark' ? '☀' : '☾';
+}
+applyTheme(activeTheme());
+themeToggle.addEventListener('click', () => {
+  applyTheme(activeTheme() === 'dark' ? 'light' : 'dark');
+});
+
 async function loadProfile() {
   const profile = await window.compassclean.getProfile();
   document.getElementById('p-author').value = profile.author || '';
@@ -63,6 +79,12 @@ document.getElementById('pickDir').addEventListener('click', async () => {
   }
 });
 
+document.getElementById('clearDir').addEventListener('click', () => {
+  outputDir = null;
+  dirLabel.textContent = 'Next to each original';
+  updateRunButton();
+});
+
 async function addFiles(paths) {
   for (const p of paths) {
     if (selectedFiles.some((f) => f.path === p)) continue;
@@ -72,6 +94,8 @@ async function addFiles(paths) {
       name,
       kind: null,
       metadata: null,
+      afterMetadata: null,
+      expanded: false,
       status: 'inspecting',
       outPath: null,
       error: null,
@@ -93,7 +117,98 @@ async function addFiles(paths) {
 }
 
 function updateRunButton() {
-  runBtn.disabled = !(selectedFiles.length > 0 && outputDir);
+  // Output folder is optional now (defaults to next-to-source), so the Run
+  // button only depends on having files selected (D-002 #3).
+  runBtn.disabled = selectedFiles.length === 0;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// Flatten a per-format metadata object into ordered [label, value] pairs so the
+// Before/After tables share one field layout (D-002 #2).
+function metadataFields(kind, m) {
+  if (!m) return [];
+  if (kind === 'ooxml') {
+    const c = m.core || {};
+    const a = m.app || {};
+    return [
+      ['Author', c.creator],
+      ['Last modified by', c.lastModifiedBy],
+      ['Title', c.title],
+      ['Subject', c.subject],
+      ['Description', c.description],
+      ['Keywords', c.keywords],
+      ['Category', c.category],
+      ['Created', c.created],
+      ['Modified', c.modified],
+      ['Application', a.application],
+      ['App version', a.appVersion],
+      ['Company', a.company],
+      ['Manager', a.manager],
+      ['Custom properties', m.hasCustomProperties ? 'present' : ''],
+    ];
+  }
+  if (kind === 'pdf') {
+    return [
+      ['Title', m.title],
+      ['Author', m.author],
+      ['Subject', m.subject],
+      ['Keywords', m.keywords],
+      ['Creator', m.creator],
+      ['Producer', m.producer],
+      ['Created', m.creationDate],
+      ['Modified', m.modificationDate],
+    ];
+  }
+  if (kind === 'image') {
+    return [
+      ['Author', m.author],
+      ['Copyright', m.copyright],
+      ['Description', m.description],
+      ['Software', m.software],
+      ['Generation parameters', m.parameters],
+      ['Comment', m.comment],
+      ['GPS', m.gps],
+      ['C2PA manifest', m.hasC2PA ? 'present' : ''],
+    ];
+  }
+  return [];
+}
+
+// Blank/absent fields read as "— none —" so a cleared field is visibly
+// confirmed rather than silently omitted (D-002 #2).
+function cellValue(value) {
+  const text = (
+    Array.isArray(value) ? value.join(', ') : value == null ? '' : String(value)
+  ).trim();
+  return text ? escapeHtml(text) : '<span class="none">— none —</span>';
+}
+
+function detailTable(entry) {
+  const before = metadataFields(entry.kind, entry.metadata);
+  const afterMap = new Map(metadataFields(entry.kind, entry.afterMetadata));
+  const hasAfter = !!entry.afterMetadata;
+  const rows = before
+    .map(
+      ([label, beforeValue]) => `
+        <tr>
+          <th>${escapeHtml(label)}</th>
+          <td>${cellValue(beforeValue)}</td>
+          <td>${hasAfter ? cellValue(afterMap.get(label)) : '<span class="none">—</span>'}</td>
+        </tr>`
+    )
+    .join('');
+  return `
+    <table class="meta-table">
+      <thead><tr><th>Field</th><th>Before</th><th>After</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 function summarize(entry) {
@@ -128,21 +243,33 @@ function summarize(entry) {
 
 function render() {
   fileListEl.innerHTML = '';
-  for (const entry of selectedFiles) {
+  selectedFiles.forEach((entry, index) => {
     const row = document.createElement('div');
     row.className = 'file-row';
     const statusLine = entry.outPath
-      ? `<div class="status ok">Saved → ${entry.outPath}</div>${entry.c2paNote ? `<div class="status ${entry.c2paNote.includes('still present') ? 'err' : 'ok'}">${entry.c2paNote}</div>` : ''}`
+      ? `<div class="status ok">Saved → ${escapeHtml(entry.outPath)}</div>${entry.c2paNote ? `<div class="status ${entry.c2paNote.includes('still present') ? 'err' : 'ok'}">${escapeHtml(entry.c2paNote)}</div>` : ''}`
       : entry.status === 'error'
-        ? `<div class="status err">${entry.error}</div>`
+        ? `<div class="status err">${escapeHtml(entry.error)}</div>`
         : '';
+    const canExpand = entry.status === 'ready' || entry.outPath;
+    const caret = canExpand ? (entry.expanded ? '▾ ' : '▸ ') : '';
+    const detail =
+      canExpand && entry.expanded ? `<div class="detail">${detailTable(entry)}</div>` : '';
     row.innerHTML = `
-      <div class="name">${entry.name}</div>
-      <div class="meta">${summarize(entry)}</div>
+      <div class="name${canExpand ? ' clickable' : ''}" data-index="${index}">${caret}${escapeHtml(entry.name)}</div>
+      <div class="meta">${escapeHtml(summarize(entry))}</div>
       ${statusLine}
+      ${detail}
     `;
+    if (canExpand) {
+      const nameEl = row.querySelector('.name.clickable');
+      nameEl.addEventListener('click', () => {
+        entry.expanded = !entry.expanded;
+        render();
+      });
+    }
     fileListEl.appendChild(row);
-  }
+  });
 }
 
 function collectFields() {
@@ -160,13 +287,15 @@ function collectFields() {
 }
 
 runBtn.addEventListener('click', async () => {
-  if (!outputDir) return;
+  if (selectedFiles.length === 0) return;
   runBtn.disabled = true;
   runBtn.textContent = 'Processing…';
   const fields = collectFields();
 
   for (const entry of selectedFiles) {
     if (entry.status === 'error') continue;
+    // outputDir is null when the user hasn't chosen a folder; the main process
+    // then saves next to each source file (D-002 #3).
     const processResponse = await window.compassclean.processFile({
       filePath: entry.path,
       outputDir,
@@ -174,6 +303,8 @@ runBtn.addEventListener('click', async () => {
     });
     if (processResponse.ok) {
       entry.outPath = processResponse.outPath;
+      entry.afterMetadata = processResponse.afterMetadata || null;
+      entry.expanded = true; // reveal the Before/After comparison automatically
       const c2paInfo = processResponse.extra?.c2pa;
       if (c2paInfo && c2paInfo.detectedBefore) {
         entry.c2paNote = c2paInfo.confirmedRemoved
