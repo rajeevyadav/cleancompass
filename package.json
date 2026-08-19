@@ -1,7 +1,7 @@
 {
   "name": "compass-clean",
   "productName": "Compass Clean",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Strip and rewrite document metadata (DOCX/PPTX/XLSX/PDF/images) before sharing.",
   "main": "src/main/main.js",
   "engines": {
