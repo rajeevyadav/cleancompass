@@ -12,19 +12,40 @@
 //
 // A single ExifTool child process is lazily started and reused; callers must
 // invoke closeExiftool() at shutdown to let the process exit cleanly.
-const { ExifTool } = require('exiftool-vendored');
-const { createC2pa } = require('c2pa-node');
-const sharp = require('sharp');
 const fs = require('fs/promises');
 const path = require('path');
 
+// Native modules (exiftool-vendored, c2pa-node, sharp) are loaded lazily and
+// defensively. In a packaged Electron build a native addon that fails to load
+// would otherwise throw at require time and crash the whole main process before
+// any window appears (surfacing as the Windows Just-In-Time debugger). Loading
+// them on first use, inside try/catch, keeps a single broken dependency from
+// taking down app startup — the affected feature degrades instead.
 let exiftool = null;
 function getExiftool() {
-  if (!exiftool) exiftool = new ExifTool({ taskTimeoutMillis: 15000 });
+  if (!exiftool) {
+    const { ExifTool } = require('exiftool-vendored');
+    exiftool = new ExifTool({ taskTimeoutMillis: 15000 });
+  }
   return exiftool;
 }
 
-const c2pa = createC2pa();
+let c2paReader = null;
+let c2paUnavailable = false;
+function getC2pa() {
+  if (c2paReader) return c2paReader;
+  if (c2paUnavailable) return null;
+  try {
+    const { createC2pa } = require('c2pa-node');
+    c2paReader = createC2pa();
+    return c2paReader;
+  } catch {
+    // c2pa-node's native binding could not load; C2PA detection is disabled
+    // rather than crashing. Stripping still happens via exiftool's -all= pass.
+    c2paUnavailable = true;
+    return null;
+  }
+}
 
 const MIME_BY_EXT = {
   '.jpg': 'image/jpeg',
@@ -47,6 +68,8 @@ async function checkC2pa(filePath) {
   const ext = path.extname(filePath).toLowerCase();
   const mimeType = MIME_BY_EXT[ext];
   if (!mimeType) return { present: false, checked: false };
+  const c2pa = getC2pa();
+  if (!c2pa) return { present: false, checked: false, unavailable: true };
   try {
     const manifest = await c2pa.read({ path: filePath, mimeType });
     return {
@@ -173,6 +196,7 @@ async function scrubAndWrite(inPath, outPath, fields = {}) {
 }
 
 async function resetFingerprint(filePath) {
+  const sharp = require('sharp');
   const ext = path.extname(filePath).toLowerCase();
   const buf = await fs.readFile(filePath);
   let img = sharp(buf);
