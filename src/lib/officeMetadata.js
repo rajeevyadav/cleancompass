@@ -31,6 +31,16 @@ function getEntryText(zip, entryPath) {
   return zip.readAsText(entry);
 }
 
+/**
+ * Read the identifying metadata currently stored in an OOXML package without
+ * modifying it. Used to show the user what a file reveals before they scrub it.
+ *
+ * @param {string} filePath  Path to a .docx / .pptx / .xlsx file.
+ * @returns {Promise<{core: object, app: object, hasCustomProperties: boolean}>}
+ *   `core` holds Dublin Core fields (creator, title, dates…), `app` holds the
+ *   Office application fields (Application, Company, Manager), and
+ *   `hasCustomProperties` flags the presence of a custom.xml part.
+ */
 async function readMetadata(filePath) {
   const buf = await fs.readFile(filePath);
   const zip = new AdmZip(buf);
@@ -72,9 +82,21 @@ async function readMetadata(filePath) {
 }
 
 /**
- * @param {string} inPath
- * @param {string} outPath
- * @param {object} fields  { author, company, title, comments, lastModifiedBy, keywords, subject, category, manager, setDatesNow, clearDates }
+ * Strip all identifying metadata from an OOXML package and write back only the
+ * fields the user explicitly supplied, saving the result to a new file. The
+ * input file is never modified.
+ *
+ * The scrub covers four surfaces: custom.xml (deleted outright), core.xml and
+ * app.xml (wiped then repopulated from `fields`), and the per-edit-session
+ * `w:rsid*` fingerprints scattered across every XML part.
+ *
+ * @param {string} inPath   Source .docx / .pptx / .xlsx (read-only).
+ * @param {string} outPath  Destination for the cleaned copy.
+ * @param {object} fields   User-supplied replacements. Recognized keys:
+ *   author, company, title, comments, lastModifiedBy, keywords, subject,
+ *   category, manager, applicationOverride, setDatesNow, clearDates. Any
+ *   omitted field is written back empty.
+ * @returns {Promise<void>}
  */
 async function scrubAndWrite(inPath, outPath, fields = {}) {
   const buf = await fs.readFile(inPath);

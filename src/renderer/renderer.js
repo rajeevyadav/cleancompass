@@ -1,3 +1,7 @@
+// Renderer UI logic: manages the selected-file list, drives inspect/scrub via
+// the window.compassclean IPC bridge, and renders per-file status (including the
+// C2PA removal note). Holds no metadata logic of its own — it only presents what
+// the main process returns and collects the fields the user fills in.
 const dropzone = document.getElementById('dropzone');
 const fileListEl = document.getElementById('fileList');
 const runBtn = document.getElementById('runBtn');

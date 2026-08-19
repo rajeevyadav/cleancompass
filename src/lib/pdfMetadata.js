@@ -1,6 +1,21 @@
+// Strip + rewrite the standard PDF Info dictionary (Title, Author, Subject,
+// Keywords, Creator, Producer, dates). Pure-JS via pdf-lib, no native deps.
+//
+// Scope note: this manages the Info dictionary and the XMP metadata stream
+// pdf-lib owns. A small minority of PDFs also carry a C2PA content-credentials
+// stream as a separate object; detecting/stripping those is not yet handled
+// here (see the known-gap note in README.md).
 const fs = require('fs/promises');
 const { PDFDocument } = require('pdf-lib');
 
+/**
+ * Read the Info-dictionary metadata from a PDF without modifying it.
+ *
+ * @param {string} filePath  Path to a .pdf file.
+ * @returns {Promise<object>}  Flat object of the standard fields (title,
+ *   author, subject, keywords, creator, producer, creationDate,
+ *   modificationDate); missing fields come back as empty strings.
+ */
 async function readMetadata(filePath) {
   const bytes = await fs.readFile(filePath);
   const doc = await PDFDocument.load(bytes, { updateMetadata: false, ignoreEncryption: true });
@@ -22,7 +37,15 @@ async function readMetadata(filePath) {
 }
 
 /**
- * @param {object} fields { author, title, comments(subject), keywords, company(producer/creator override), setDatesNow, clearDates }
+ * Wipe the PDF Info dictionary and write back only the supplied fields, saving
+ * to a new file. The input file is never modified.
+ *
+ * @param {string} inPath   Source .pdf (read-only).
+ * @param {string} outPath  Destination for the cleaned copy.
+ * @param {object} fields   User-supplied replacements: author, title,
+ *   comments (mapped to Subject), keywords, applicationOverride (mapped to
+ *   Creator + Producer), setDatesNow, clearDates. Omitted fields stay empty.
+ * @returns {Promise<void>}
  */
 async function scrubAndWrite(inPath, outPath, fields = {}) {
   const bytes = await fs.readFile(inPath);
